@@ -35,6 +35,7 @@ import com.audiobookshelf.app.media.MediaManager
 import com.audiobookshelf.app.media.MediaProgressSyncer
 import com.audiobookshelf.app.server.ApiHandler
 import com.audiobookshelf.app.BuildConfig
+import com.audiobookshelf.app.managers.WakeManager
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
@@ -101,6 +102,7 @@ class PlayerNotificationService : MediaBrowserServiceCompat()  {
   var castPlayer:CastPlayer? = null
 
   lateinit var sleepTimerManager:SleepTimerManager
+  lateinit var wakeManager: WakeManager
   lateinit var mediaProgressSyncer: MediaProgressSyncer
 
   private var notificationId = 10
@@ -174,6 +176,7 @@ class PlayerNotificationService : MediaBrowserServiceCompat()  {
     isStarted = false
     isClosed = true
     DeviceManager.widgetUpdater?.onPlayerChanged(this)
+    wakeManager.isPlayingChanged(false)
 
     playerNotificationManager.setPlayer(null)
     mPlayer.release()
@@ -220,7 +223,8 @@ class PlayerNotificationService : MediaBrowserServiceCompat()  {
 
     // Initialize sleep timer
     sleepTimerManager = SleepTimerManager(this)
-
+    // Initialize wake manager
+    wakeManager = WakeManager(this)
     // Initialize Media Progress Syncer
     mediaProgressSyncer = MediaProgressSyncer(this, apiHandler)
 
@@ -611,6 +615,7 @@ class PlayerNotificationService : MediaBrowserServiceCompat()  {
       } else {
         Log.d(tag, "switchToPlayer: Switching to cast player from exo player stop exo player")
         mPlayer.stop()
+        wakeManager.isPlayingChanged(false)
       }
     } else {
       if (currentPlayer == mPlayer) {
@@ -619,6 +624,7 @@ class PlayerNotificationService : MediaBrowserServiceCompat()  {
       } else if (castPlayer != null) {
         Log.d(tag, "switchToPlayer: Switching to exo player from cast player stop cast player")
         castPlayer?.stop()
+        wakeManager.isPlayingChanged(false)
       }
     }
 
@@ -914,6 +920,7 @@ class PlayerNotificationService : MediaBrowserServiceCompat()  {
     try {
       currentPlayer.stop()
       currentPlayer.clearMediaItems()
+      wakeManager.isPlayingChanged(false)
     } catch(e:Exception) {
       Log.e(tag, "Exception clearing exoplayer $e")
     }

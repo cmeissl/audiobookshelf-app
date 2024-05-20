@@ -56,6 +56,9 @@ class PlayerListener(var playerNotificationService:PlayerNotificationService) : 
 
     lazyIsPlaying = isPlaying
 
+    // Update wake manager
+    playerNotificationService.wakeManager.isPlayingChanged(isPlaying)
+
     // Update widget
     DeviceManager.widgetUpdater?.onPlayerChanged(playerNotificationService)
 
