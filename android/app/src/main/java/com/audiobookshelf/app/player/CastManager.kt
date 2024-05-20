@@ -2,9 +2,13 @@ package com.audiobookshelf.app.player
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
+import android.provider.Settings
 import android.util.Log
 import androidx.appcompat.R
 import androidx.mediarouter.app.MediaRouteChooserDialog
@@ -50,6 +54,11 @@ class CastManager constructor(val mainActivity:Activity) {
 
   fun requestSession(playerNotificationService: PlayerNotificationService, callback: RequestSessionCallback) {
     this.playerNotificationService = playerNotificationService
+
+    var powerManager:PowerManager = mainActivity.getSystemService(Context.POWER_SERVICE) as PowerManager
+    if (!powerManager.isIgnoringBatteryOptimizations(mainActivity.packageName)) {
+      mainActivity.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+    }
 
     mainActivity.runOnUiThread {
       val session: CastSession? = getSession()
